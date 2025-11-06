@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>App de Contactos Favoritos</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --accent:#0b78d1;
+      --muted:#6b7280;
+      --radius:12px;
+    }
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{
+  margin:0;
+  background: url('c:\Users\mendo\Downloads\WhatsApp Image 2025-11-06 at 4.28.25 PM.jpeg') no-repeat center center fixed;
+  background-size: cover;
+  color:#0f1724;
+  padding:20px;
+}
+
+    .app {
+      max-width:900px;margin:0 auto;
+    }
+    header{
+      display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px;
+    }
+    header h1{font-size:20px;margin:0}
+    .controls{display:flex;gap:8px;align-items:center;}
+    .search{
+      background:var(--card);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,0.05);
+    }
+    .search input{border:0;outline:none;background:transparent;font-size:14px;}
+    button.btn{
+      background:var(--accent);color:white;border:0;padding:9px 12px;border-radius:10px;font-weight:600;cursor:pointer;
+    }
+    main{display:grid;grid-template-columns:1fr 340px;gap:18px;}
+    /* Lista de contactos */
+    .contacts{
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .card{
+      background:var(--card);border-radius:var(--radius);padding:12px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 18px rgba(10,20,40,0.04);
+    }
+    .avatar{
+      width:64px;height:64px;border-radius:12px;background:#e6eef8;flex:0 0 64px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    }
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+    .meta{flex:1}
+    .meta h3{margin:0;font-size:16px}
+    .meta p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .actions{display:flex;gap:8px;align-items:center}
+    .actions a{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;text-decoration:none;border:1px solid rgba(15,23,36,0.06);font-size:13px;}
+    .actions a.call{color:#065f46;border-color:rgba(6,95,70,0.08);}
+    .actions a.wa{color:#075e54;border-color:rgba(7,94,84,0.08);}
+    .empty{padding:18px;text-align:center;color:var(--muted);background:transparent;border-radius:10px;}
+    /* panel lateral (form agregar) */
+    .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(10,20,40,0.04);}
+    .panel h2{margin:0 0 8px;font-size:16px}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+    .field label{font-size:13px;color:var(--muted)}
+    .field input[type="text"], .field input[type="tel"], .field input[type="file"]{
+      padding:8px;border-radius:8px;border:1px solid #e6e9ef;background:transparent;outline:none;
+    }
+    .small{font-size:12px;color:var(--muted)}
+    .contact-count{font-size:13px;color:var(--muted);margin-bottom:10px}
+    footer{margin-top:16px;text-align:center;color:var(--muted);font-size:13px}
+    @media (max-width:880px){ main{grid-template-columns:1fr; } .panel{order:2} }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>App de Contactos Favoritos</h1>
+        <div class="small">Lista con llamada directa y WhatsApp</div>
+      </div>
+
+      <div class="controls">
+        <div class="search" title="Buscar por nombre o número">
+          🔎 <input id="search" placeholder="Buscar contacto..." />
+        </div>
+        <button class="btn" id="btn-reset-sample" title="Cargar ejemplo">Cargar ejemplo</button>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="contact-count" id="contact-count">0 contactos</div>
+        <div class="contacts" id="contacts"></div>
+      </section>
+
+      <aside class="panel">
+        <h2>Agregar / Editar contacto</h2>
+
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="name" placeholder="Ej: María García" />
+        </div>
+
+        <div class="field">
+          <label>Número de teléfono</label>
+          <input type="tel" id="phone" placeholder="Formato: 50371234567 o 71234567" />
+          <div class="small">Guarda el teléfono en formato internacional sin símbolos si quieres abrir WhatsApp correctamente. Ej: <code>50371234567</code> o solo <code>71234567</code> si ya usas prefijo local.</div>
+        </div>
+
+        <div class="field">
+          <label>Foto (subir desde tu PC)</label>
+          <input type="file" id="photo" accept="image/*" />
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn" id="btn-add">Añadir contacto</button>
+          <button id="btn-clear" style="padding:9px 12px;border-radius:10px;border:1px solid #e6e9ef;background:transparent;cursor:pointer">Limpiar</button>
+        </div>
+
+        <hr style="margin:12px 0;border:none;border-top:1px solid #f0f3f7" />
+
+        <div class="small">
+          Instrucciones rápidas:
+          <ul style="margin:6px 0 0 18px">
+            <li>Botón 📞 intenta llamar (funciona en móviles o app con soporte tel:).</li>
+            <li>Botón 💬 abre <code>https://wa.me/&lt;numero&gt;</code> para WhatsApp Web/App. El número no debe tener signos (+) ni ceros delante de la lada cuando se usa código internacional.</li>
+            <li>Los contactos se guardan en tu navegador (localStorage) en este equipo.</li>
+          </ul>
+        </div>
+
+      </aside>
+    </main>
+
+    <footer>
+      App local — los datos quedan en tu navegador. Si quieres exportar/editar, dímelo y añado export/import.
+    </footer>
+  </div>
+
+  <script>
+    // --- Helpers ---
+    const qs = s => document.querySelector(s);
+    const qsa = s => Array.from(document.querySelectorAll(s));
+
+    // State keys
+    const STORAGE_KEY = "mis_contactos_favoritos_v1";
+
+    // DOM
+    const contactsEl = qs("#contacts");
+    const contactCountEl = qs("#contact-count");
+    const searchInput = qs("#search");
+
+    const nameInput = qs("#name");
+    const phoneInput = qs("#phone");
+    const photoInput = qs("#photo");
+    const btnAdd = qs("#btn-add");
+    const btnClear = qs("#btn-clear");
+    const btnLoad = qs("#btn-reset-sample");
+
+    // Load contacts from localStorage
+    function loadContacts(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return [];
+        return JSON.parse(raw);
+      }catch(e){
+        console.error("Error leyendo contactos:", e);
+        return [];
+      }
+    }
+    function saveContacts(list){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    // Render
+    function render(filter=""){
+      const list = loadContacts();
+      const filtered = list.filter(c=>{
+        const f = filter.trim().toLowerCase();
+        if(!f) return true;
+        return (c.name && c.name.toLowerCase().includes(f)) || (c.phone && c.phone.includes(f));
+      });
+      contactsEl.innerHTML = "";
+      if(filtered.length === 0){
+        contactsEl.innerHTML = '<div class="empty">No hay contactos. Usa "Cargar ejemplo" o agrega uno.</div>';
+      } else {
+        for(const c of filtered){
+          const item = document.createElement("div");
+          item.className = "card";
+
+          // Avatar
+          const av = document.createElement("div");
+          av.className = "avatar";
+          const img = document.createElement("img");
+          img.alt = c.name || "Contacto";
+          img.src = c.photo || placeholderDataURL(c.name);
+          av.appendChild(img);
+
+          // Meta
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          const h = document.createElement("h3");
+          h.textContent = c.name || "(sin nombre)";
+          const p = document.createElement("p");
+          p.textContent = c.phone || "(sin teléfono)";
+          meta.appendChild(h);
+          meta.appendChild(p);
+
+          // Actions
+          const actions = document.createElement("div");
+          actions.className = "actions";
+
+          // call link
+          const call = document.createElement("a");
+          call.href = `tel:${c.phone || ""}`;
+          call.className = "call";
+          call.setAttribute("aria-label","Llamar");
+          call.innerHTML = "📞 Llamar";
+          actions.appendChild(call);
+
+          // whatsapp link - using wa.me
+          const wa = document.createElement("a");
+          // sanitize phone: remove spaces, plus and other chars
+          const sanitized = (c.phone || "").replace(/[^\d]/g,"");
+          // if no number provided, make link empty
+          if(sanitized){
+            wa.href = `https://wa.me/${sanitized}`;
+          } else {
+            wa.href = "#";
+            wa.onclick = (e) => { e.preventDefault(); alert("Contacto sin número válido"); };
+          }
+          wa.target = "_blank";
+          wa.rel = "noopener";
+          wa.className = "wa";
+          wa.innerHTML = "💬 WhatsApp";
+          actions.appendChild(wa);
+
+          // delete button
+          const del = document.createElement("a");
+          del.href = "#";
+          del.style = "margin-left:8px;color:#b91c1c;border-color:rgba(185,28,28,0.06)";
+          del.textContent = "Eliminar";
+          del.onclick = (ev)=>{
+            ev.preventDefault();
+            if(confirm(`¿Eliminar a ${c.name || c.phone}?`)){
+              const newList = loadContacts().filter(x => x.id !== c.id);
+              saveContacts(newList);
+              render(searchInput.value);
+            }
+          };
+          actions.appendChild(del);
+
+          item.appendChild(av);
+          item.appendChild(meta);
+          item.appendChild(actions);
+          contactsEl.appendChild(item);
+        }
+      }
+      contactCountEl.textContent = `${loadContacts().length} contactos`;
+    }
+
+    // Simple placeholder image (SVG Data URL) showing initials
+    function placeholderDataURL(name){
+      const initials = (name || "").split(" ").filter(Boolean).slice(0,2).map(s => s[0]?.toUpperCase() || "").join("") || "?";
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect fill='#e6eef8' width='100%' height='100%'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='64' fill='#0b78d1'>${initials}</text></svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    // Add contact (reads file if provided)
+    async function addContact(){
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      if(!name && !phone){
+        alert("Introduce al menos nombre o teléfono.");
+        return;
+      }
+
+      let photoData = "";
+      const file = photoInput.files && photoInput.files[0];
+      if(file){
+        // convert to dataURL
+        photoData = await readFileAsDataURL(file);
+      }
+
+      const list = loadContacts();
+      const contact = {
+        id: cryptoRandomId(),
+        name,
+        phone,
+        photo: photoData || ""
+      };
+      list.push(contact);
+      saveContacts(list);
+      // clear inputs
+      nameInput.value = ""; phoneInput.value = ""; photoInput.value = "";
+      render(searchInput.value);
+    }
+
+    function cryptoRandomId(){
+      // simple id
+      return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    }
+
+    function readFileAsDataURL(file){
+      return new Promise((res, rej)=>{
+        const r = new FileReader();
+        r.onerror = () => rej("Error leyendo el archivo");
+        r.onload = () => res(r.result);
+        r.readAsDataURL(file);
+      });
+    }
+
+    // Load sample contacts
+    function loadSample(){
+      const sample = [
+        { id: cryptoRandomId(), name: "María López", phone: "50371234567", photo: "" },
+        { id: cryptoRandomId(), name: "Juan Pérez", phone: "50373456789", photo: "" },
+        { id: cryptoRandomId(), name: "Ana Gómez", phone: "71234567", photo: "" }
+      ];
+      saveContacts(sample);
+      render();
+    }
+
+    // Events
+    btnAdd.addEventListener("click", () => addContact());
+    btnClear.addEventListener("click", () => {
+      nameInput.value = ""; phoneInput.value = ""; photoInput.value = "";
+    });
+    searchInput.addEventListener("input", (e)=>render(e.target.value));
+    btnLoad.addEventListener("click", ()=> {
+      if(confirm("Esto sobrescribirá contactos actuales con una lista de ejemplo. ¿Continuar?")){
+        loadSample();
+      }
+    });
+
+    // Init
+    (function init(){
+      // If nothing in storage, keep empty but could auto-load sample
+      render();
+    })();
+
+    // Expose a simple method to export contacts (console) if needed
+    window.exportContactsToJSON = function(){
+      const d = loadContacts();
+      const blob = new Blob([JSON.stringify(d, null, 2)], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "mis_contactos.json"; document.body.appendChild(a); a.click();
+      a.remove(); URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
